@@ -7,7 +7,7 @@ Android IME (keyboard app) for the Fava Persian layout.
 ## When work starts here
 
 The authoritative key mapping lives in
-[`fava-doc`](https://github.com/makantayebi/fava-doc) — build the IME's
+[`fava-standard`](https://github.com/makantayebi/fava-standard) — build the IME's
 key map from the latest `versions/<x>/layout.yaml` there rather than
 hand-copying from the Windows or Ubuntu implementations, which have their
 own platform-specific quirks (e.g. Windows pads some diacritic keys with
