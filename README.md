@@ -14,8 +14,8 @@ re-run the generator, and copy the two files over:
 ```bash
 cd fava-standard
 python3 tools/render.py v0.0.4
-cp versions/v0.0.4/generated/avayi_keys.xml      ../android-keyboard/app/src/main/res/xml/
-cp versions/v0.0.4/generated/avayi_keys_shifted.xml ../android-keyboard/app/src/main/res/xml/
+cp versions/v0.0.4/generated/avayi_keys.xml      ../fava-android-keyboard/app/src/main/res/xml/
+cp versions/v0.0.4/generated/avayi_keys_shifted.xml ../fava-android-keyboard/app/src/main/res/xml/
 ```
 
 Unlike the Linux/XKB side, Android needs no Compose-style workaround for
