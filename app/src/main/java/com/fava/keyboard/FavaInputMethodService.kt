@@ -9,7 +9,7 @@ import android.view.View
 /**
  * IME for the Fava Persian layout. Both keyboard pages (avayi_keys.xml,
  * avayi_keys_shifted.xml) are generated from fava-standard's
- * versions/v0.0.4/layout.yaml by tools/render.py — this class only
+ * versions/v0.0.5/layout.yaml by tools/render.py — this class only
  * handles the few function keys (shift/delete/enter); every character
  * key carries its own android:keyOutputText and is handled generically
  * by onText() below, no per-key logic needed.
@@ -19,7 +19,10 @@ class FavaInputMethodService : InputMethodService(), KeyboardView.OnKeyboardActi
     private lateinit var keyboardView: KeyboardView
     private lateinit var baseKeyboard: Keyboard
     private lateinit var shiftedKeyboard: Keyboard
-    private var shiftLocked = false
+
+    // Momentary shift, like a real keyboard — shift applies to exactly the
+    // next character, then reverts. Not a caps-lock-style toggle.
+    private var shiftActive = false
 
     override fun onCreateInputView(): View {
         baseKeyboard = Keyboard(this, R.xml.avayi_keys)
@@ -33,21 +36,21 @@ class FavaInputMethodService : InputMethodService(), KeyboardView.OnKeyboardActi
 
     override fun onStartInputView(info: android.view.inputmethod.EditorInfo?, restarting: Boolean) {
         super.onStartInputView(info, restarting)
-        shiftLocked = false
-        keyboardView.keyboard = baseKeyboard
-        keyboardView.isShifted = false
+        setShift(false)
+    }
+
+    private fun setShift(active: Boolean) {
+        shiftActive = active
+        keyboardView.keyboard = if (active) shiftedKeyboard else baseKeyboard
+        keyboardView.isShifted = active
+        keyboardView.invalidateAllKeys()
     }
 
     override fun onKey(primaryCode: Int, keyCodes: IntArray?) {
         val ic = currentInputConnection ?: return
         when (primaryCode) {
             Keyboard.KEYCODE_DELETE -> ic.deleteSurroundingText(1, 0)
-            Keyboard.KEYCODE_SHIFT -> {
-                shiftLocked = !shiftLocked
-                keyboardView.keyboard = if (shiftLocked) shiftedKeyboard else baseKeyboard
-                keyboardView.isShifted = shiftLocked
-                keyboardView.invalidateAllKeys()
-            }
+            Keyboard.KEYCODE_SHIFT -> setShift(!shiftActive)
             ENTER_CODE -> ic.sendKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER))
         }
     }
@@ -55,6 +58,7 @@ class FavaInputMethodService : InputMethodService(), KeyboardView.OnKeyboardActi
     override fun onText(text: CharSequence?) {
         if (text.isNullOrEmpty()) return
         currentInputConnection?.commitText(text, 1)
+        if (shiftActive) setShift(false)  // momentary — one character, then back to base
     }
 
     override fun onPress(primaryCode: Int) {}
