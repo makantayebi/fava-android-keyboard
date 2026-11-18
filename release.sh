@@ -8,7 +8,7 @@ set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")"
 
 REMOTE_HOST="root@makantayebi.com"
-REMOTE_PATH="/var/www/html/fav"
+REMOTE_PATH="/var/www/html/fava"
 
 if [[ ! -f keystore.properties ]]; then
     echo "error: keystore.properties not found here -- a release build would be unsigned." >&2
@@ -34,5 +34,5 @@ scp "$APK" "$REMOTE_HOST:$REMOTE_PATH/"
 
 echo
 echo "Done: $(basename "$APK") -> $REMOTE_HOST:$REMOTE_PATH/"
-echo "Likely live at: https://makantayebi.com/fav/$(basename "$APK")"
+echo "Likely live at: https://makantayebi.com/fava/$(basename "$APK")"
 echo "(depends on how that vhost is configured -- confirm the URL actually serves it)"
