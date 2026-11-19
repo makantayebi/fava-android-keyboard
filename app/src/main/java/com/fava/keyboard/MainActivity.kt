@@ -20,9 +20,15 @@ class MainActivity : Activity() {
             setPadding(48, 96, 48, 48)
         }
 
+        val versionName = packageManager.getPackageInfo(packageName, 0).versionName
+
         root.addView(TextView(this).apply {
-            text = "Fava Keyboard\n\n" +
-                "1. Settings → System → Languages & input → On-screen keyboard → Manage keyboards → enable Fava\n" +
+            text = "Fava Keyboard v$versionName"
+            textSize = 22f
+        })
+
+        root.addView(TextView(this).apply {
+            text = "\n1. Settings → System → Languages & input → On-screen keyboard → Manage keyboards → enable Fava\n" +
                 "2. Tap the text field below, then switch to Fava from the keyboard-switcher icon\n\n" +
                 "Try it:"
             textSize = 16f
