@@ -1,6 +1,8 @@
 # fava-android (repo: fava-android-keyboard)
 
-Android IME (keyboard app) for the Fava Persian layout (currently `v0.0.5`).
+Android IME (keyboard app) for the Fava Persian layout. The app is
+currently at `v0.1.0`, built from the `v0.0.5` script — see "Versioning"
+below for why those numbers differ.
 
 ## Source of truth
 
@@ -32,6 +34,25 @@ the universal script — the underlying `layout.yaml` is unaffected:
   keyboard's dedicated keys do.
 - `ANDROID_KEY_LABEL` shows the Persian name نیم‌فاصله for ZWNJ's key,
   not the diagram's Latin abbreviation — a phone key has room for it.
+
+## Globe key
+
+The bottom row includes a 🌐 key (code 11) between shift and space, same
+role as Gboard's own globe key: it hands off to Android's system IME
+switcher rather than the app owning any switcher UI itself —
+`switchToNextInputMethod(false)` on API 28+, falling back to
+`InputMethodManager.showInputMethodPicker()` on older devices. See
+`FavaInputMethodService.switchToNextIme()`.
+
+## Versioning
+
+This app has its own `versionName`/`versionCode`
+(`app/build.gradle.kts`), tracked in `fava-standard/targets.yaml` as
+this target's `app_version` — separate from `script_version`, which is
+the `fava-standard` layout version (`layout.yaml`) this app's keyboard
+XML was generated from. The globe key is an Android-only UI feature
+with no effect on `layout.yaml`, so it bumped `app_version` to `0.1.0`
+without touching `script_version` (still `0.0.5`).
 
 ## Shift is momentary, not a lock
 

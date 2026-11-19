@@ -1,10 +1,12 @@
 package com.fava.keyboard
 
+import android.graphics.Rect
 import android.inputmethodservice.InputMethodService
 import android.inputmethodservice.Keyboard
 import android.inputmethodservice.KeyboardView
 import android.view.KeyEvent
 import android.view.View
+import android.view.inputmethod.InputMethodManager
 
 /**
  * IME for the Fava Persian layout. Both keyboard pages (avayi_keys.xml,
@@ -37,6 +39,13 @@ class FavaInputMethodService : InputMethodService(), KeyboardView.OnKeyboardActi
     override fun onStartInputView(info: android.view.inputmethod.EditorInfo?, restarting: Boolean) {
         super.onStartInputView(info, restarting)
         setShift(false)
+
+        // Keys at the bottom corners otherwise fall inside the system's
+        // back/home gesture-nav detection zone, which swallows the touch
+        // before it reaches onKey — exclude the keyboard's own view from that.
+        keyboardView.post {
+            keyboardView.systemGestureExclusionRects = listOf(Rect(0, 0, keyboardView.width, keyboardView.height))
+        }
     }
 
     private fun setShift(active: Boolean) {
@@ -52,7 +61,16 @@ class FavaInputMethodService : InputMethodService(), KeyboardView.OnKeyboardActi
             Keyboard.KEYCODE_DELETE -> ic.deleteSurroundingText(1, 0)
             Keyboard.KEYCODE_SHIFT -> setShift(!shiftActive)
             ENTER_CODE -> ic.sendKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER))
+            GLOBE_CODE -> switchToNextIme()
         }
+    }
+
+    // Same role as Gboard's own globe key: hand off to the system's IME
+    // switcher rather than owning a UI for it ourselves. showInputMethodPicker()
+    // (not switchToNextInputMethod) because the latter silently no-ops in some
+    // environments instead of cycling — this always surfaces a visible picker.
+    private fun switchToNextIme() {
+        (getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager).showInputMethodPicker()
     }
 
     override fun onText(text: CharSequence?) {
@@ -70,5 +88,6 @@ class FavaInputMethodService : InputMethodService(), KeyboardView.OnKeyboardActi
 
     companion object {
         private const val ENTER_CODE = 10
+        private const val GLOBE_CODE = 11
     }
 }
