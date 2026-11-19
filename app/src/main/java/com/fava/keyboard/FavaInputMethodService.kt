@@ -33,6 +33,10 @@ class FavaInputMethodService : InputMethodService(), KeyboardView.OnKeyboardActi
         keyboardView = layoutInflater.inflate(R.layout.input_view, null) as KeyboardView
         keyboardView.keyboard = baseKeyboard
         keyboardView.setOnKeyboardActionListener(this)
+
+        // targetSdk 35 forces edge-to-edge by default, which otherwise lets
+        // this window draw under the nav bar instead of being inset above it.
+        window?.window?.setDecorFitsSystemWindows(true)
         return keyboardView
     }
 

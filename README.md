@@ -1,7 +1,7 @@
 # fava-android (repo: fava-android-keyboard)
 
 Android IME (keyboard app) for the Fava Persian layout. The app is
-currently at `v0.1.0`, built from the `v0.0.5` script — see "Versioning"
+currently at `v0.1.1`, built from the `v0.0.5` script — see "Versioning"
 below for why those numbers differ.
 
 ## Source of truth
@@ -39,10 +39,12 @@ the universal script — the underlying `layout.yaml` is unaffected:
 
 The bottom row includes a 🌐 key (code 11) between shift and space, same
 role as Gboard's own globe key: it hands off to Android's system IME
-switcher rather than the app owning any switcher UI itself —
-`switchToNextInputMethod(false)` on API 28+, falling back to
-`InputMethodManager.showInputMethodPicker()` on older devices. See
-`FavaInputMethodService.switchToNextIme()`.
+switcher via `InputMethodManager.showInputMethodPicker()` rather than
+the app owning any switcher UI itself. See
+`FavaInputMethodService.switchToNextIme()`. For the switcher to be
+reachable at all, `res/xml/method.xml` must declare
+`android:supportsSwitchingToNextInputMethod="true"` — without it the
+system silently refuses to switch.
 
 ## Versioning
 
@@ -52,7 +54,23 @@ this target's `app_version` — separate from `script_version`, which is
 the `fava-standard` layout version (`layout.yaml`) this app's keyboard
 XML was generated from. The globe key is an Android-only UI feature
 with no effect on `layout.yaml`, so it bumped `app_version` to `0.1.0`
-without touching `script_version` (still `0.0.5`).
+(and the boundary-overflow fix below to `0.1.1`) without touching
+`script_version` (still `0.0.5`).
+
+## Keyboard must stay within screen bounds
+
+`android:keyWidth` percentages in a row already sum to 100% — any
+non-zero `android:horizontalGap`/`verticalGap` on the `<Keyboard>` root
+is *added on top* of that, not subtracted from it. A `4dp`/`6dp` gap
+tried briefly for a "floating key" look overflowed the screen on all
+sides (worst on row 1's 13 keys: 12 internal gaps × 4dp), and pushed
+the bottom row down far enough to render under the system nav bar.
+Gaps are back to `0px`; the floating-key look instead comes from
+`<inset>` padding baked into `key_bg_normal.xml`/`key_bg_pressed.xml`,
+which doesn't affect row width/height math at all. Also added
+`setDecorFitsSystemWindows(true)` in `onCreateInputView()` — targetSdk
+35 forces edge-to-edge by default, which otherwise lets the IME window
+draw under the nav bar instead of being inset above it.
 
 ## Shift is momentary, not a lock
 
@@ -68,8 +86,8 @@ deliberately omits `isSticky`.
 ./gradlew assembleRelease    # signed, if keystore.properties exists — see below
 ```
 
-Both commands apply `tools/render.py`'s custom output naming, so the
-APK itself is named `fava-0.0.5.apk`, not `app-debug.apk`.
+Both commands apply a custom output naming based on `versionName`, so
+the APK itself is named `fava-0.1.1.apk`, not `app-debug.apk`.
 
 Built and verified on an emulator before being committed — not just
 "it compiled": installed, enabled as the active IME, and the
