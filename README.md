@@ -1,7 +1,7 @@
 # fava-android (repo: fava-android-keyboard)
 
 Android IME (keyboard app) for the Fava Persian layout. The app is
-currently at `v0.1.1`, built from the `v0.0.5` script — see "Versioning"
+currently at `v0.2.5`, built from the `v0.0.6` script — see "Versioning"
 below for why those numbers differ.
 
 ## Source of truth
@@ -9,15 +9,15 @@ below for why those numbers differ.
 The keyboard layouts — `app/src/main/res/xml/avayi_keys.xml` and
 `avayi_keys_shifted.xml` — are generated from
 [`fava-standard`](https://github.com/makantayebi/fava-standard)'s
-`versions/v0.0.5/layout.yaml` by its `tools/render.py`, same as the
+`versions/v0.0.6/layout.yaml` by its `tools/render.py`, same as the
 Linux implementation. Don't hand-edit them — update `layout.yaml`,
 re-run the generator, and copy the two files over:
 
 ```bash
 cd fava-standard
-python3 tools/render.py v0.0.5
-cp versions/v0.0.5/generated/avayi_keys.xml         ../fava-android-keyboard/app/src/main/res/xml/
-cp versions/v0.0.5/generated/avayi_keys_shifted.xml ../fava-android-keyboard/app/src/main/res/xml/
+python3 tools/render.py v0.0.6
+cp versions/v0.0.6/generated/avayi_keys.xml         ../fava-android-keyboard/app/src/main/res/xml/
+cp versions/v0.0.6/generated/avayi_keys_shifted.xml ../fava-android-keyboard/app/src/main/res/xml/
 ```
 
 Unlike the Linux/XKB side, Android needs no Compose-style workaround for
@@ -26,14 +26,28 @@ multi-character keys (shift+Q/W/E's اُ/اِ/اَ, B's وْ) —
 `FavaInputMethodService.onText()` is one generic handler for every
 character key, no per-key logic.
 
+## Action keys (not every key types a character)
+
+As of script `v0.0.6`, `layout.yaml` can give a key's `base`/`shift` the
+literal value `"BACKSPACE"` instead of a `"U+XXXX"` codepoint — a key
+that performs an action instead of typing text (the `/` key, `AB10`, is
+the first one). `tools/render.py` checks for this explicitly at each
+render site rather than teaching `cp_list()` about it, since "what
+codepoints does this type" isn't the right question once a key isn't
+typing anything. On Android it becomes
+`android:codes="-5" android:keyIcon="@android:drawable/ic_input_delete"`
+— the same code `FavaInputMethodService.onKey()` already handles for
+the function row's own delete key, so no new Kotlin was needed.
+
 Two things here are **Android-specific rendering choices**, not part of
 the universal script — the underlying `layout.yaml` is unaffected:
 - The `{`/`}`/`\` cluster (`AD11`, `AD12`, `BKSL`) is hidden —
   `ANDROID_HIDE_KEYS` in `tools/render.py` — a touchscreen doesn't need
   rarely-used punctuation eating into row-2 space the way a physical
   keyboard's dedicated keys do.
-- `ANDROID_KEY_LABEL` shows the Persian name نیم‌فاصله for ZWNJ's key,
-  not the diagram's Latin abbreviation — a phone key has room for it.
+- `ANDROID_KEY_LABEL` shows a compact symbol (◂┆▸) for ZWNJ's key — the
+  real Persian term نیم‌فاصله, even wrapped to two lines, was too wide
+  for a ~10%-width key at the keyboard's label text size.
 
 ## Globe key
 
@@ -55,7 +69,7 @@ the `fava-standard` layout version (`layout.yaml`) this app's keyboard
 XML was generated from. The globe key is an Android-only UI feature
 with no effect on `layout.yaml`, so it bumped `app_version` to `0.1.0`
 (and the boundary-overflow fix below to `0.1.1`) without touching
-`script_version` (still `0.0.5`).
+`script_version` (still `0.0.6`).
 
 ## Keyboard must stay within screen bounds
 
