@@ -11,28 +11,35 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 
 /**
- * IME for the Fava Persian layout. Both keyboard pages (avayi_keys.xml,
- * avayi_keys_shifted.xml) are generated from fava-standard's
- * layouts/android/v0.0.6/layout.yaml (an Android-specific fork of the
- * base script, not versions/ — see fava-standard/layouts/README.md) by
- * tools/render.py --target android — this class only
- * handles the few function keys (shift/delete/enter); every character
- * key carries its own android:keyOutputText and is handled generically
- * by onText() below, no per-key logic needed.
+ * IME for the Fava Persian layout. All three keyboard pages (avayi_keys.xml,
+ * avayi_keys_shifted.xml, avayi_keys_symbols.xml) are generated from
+ * fava-standard's layouts/android/v0.0.7/layout.yaml (an Android-specific
+ * fork of the base script, not versions/ — see fava-standard/layouts/README.md)
+ * by tools/render.py --target android — this class only
+ * handles the few function keys (shift/delete/enter/the ۱۲۳ page toggle);
+ * every character key carries its own android:keyOutputText and is handled
+ * generically by onText() below, no per-key logic needed.
  */
 class FavaInputMethodService : InputMethodService(), KeyboardView.OnKeyboardActionListener {
 
     private lateinit var keyboardView: KeyboardView
     private lateinit var baseKeyboard: Keyboard
     private lateinit var shiftedKeyboard: Keyboard
+    private lateinit var symbolsKeyboard: Keyboard
 
     // Momentary shift, like a real keyboard — shift applies to exactly the
     // next character, then reverts. Not a caps-lock-style toggle.
     private var shiftActive = false
 
+    // The ۱۲۳/ABC page toggle — unlike shift, this is sticky: it stays on
+    // the symbols page until pressed again, like every other mobile
+    // keyboard's own 123/ABC key.
+    private var symbolsActive = false
+
     override fun onCreateInputView(): View {
         baseKeyboard = Keyboard(this, R.xml.avayi_keys)
         shiftedKeyboard = Keyboard(this, R.xml.avayi_keys_shifted)
+        symbolsKeyboard = Keyboard(this, R.xml.avayi_keys_symbols)
 
         keyboardView = layoutInflater.inflate(R.layout.input_view, null) as KeyboardView
         keyboardView.keyboard = baseKeyboard
@@ -65,8 +72,17 @@ class FavaInputMethodService : InputMethodService(), KeyboardView.OnKeyboardActi
 
     private fun setShift(active: Boolean) {
         shiftActive = active
+        symbolsActive = false
         keyboardView.keyboard = if (active) shiftedKeyboard else baseKeyboard
         keyboardView.isShifted = active
+        keyboardView.invalidateAllKeys()
+    }
+
+    private fun toggleSymbols() {
+        symbolsActive = !symbolsActive
+        shiftActive = false
+        keyboardView.keyboard = if (symbolsActive) symbolsKeyboard else baseKeyboard
+        keyboardView.isShifted = false
         keyboardView.invalidateAllKeys()
     }
 
@@ -77,6 +93,7 @@ class FavaInputMethodService : InputMethodService(), KeyboardView.OnKeyboardActi
             Keyboard.KEYCODE_SHIFT -> setShift(!shiftActive)
             ENTER_CODE -> ic.sendKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER))
             GLOBE_CODE -> switchToNextIme()
+            SYMBOLS_CODE -> toggleSymbols()
         }
     }
 
@@ -104,5 +121,6 @@ class FavaInputMethodService : InputMethodService(), KeyboardView.OnKeyboardActi
     companion object {
         private const val ENTER_CODE = 10
         private const val GLOBE_CODE = 11
+        private const val SYMBOLS_CODE = 12
     }
 }
