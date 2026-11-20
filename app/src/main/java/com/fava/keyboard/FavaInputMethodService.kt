@@ -7,6 +7,8 @@ import android.inputmethodservice.KeyboardView
 import android.view.KeyEvent
 import android.view.View
 import android.view.inputmethod.InputMethodManager
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 
 /**
  * IME for the Fava Persian layout. Both keyboard pages (avayi_keys.xml,
@@ -35,8 +37,15 @@ class FavaInputMethodService : InputMethodService(), KeyboardView.OnKeyboardActi
         keyboardView.setOnKeyboardActionListener(this)
 
         // targetSdk 35 forces edge-to-edge by default, which otherwise lets
-        // this window draw under the nav bar instead of being inset above it.
-        window?.window?.setDecorFitsSystemWindows(true)
+        // this window draw under the nav bar — setDecorFitsSystemWindows alone
+        // doesn't reliably stop that for an IME-type window, so pad the view
+        // by the nav bar's own height directly, on top of the XML's 6dp.
+        val basePaddingBottom = keyboardView.paddingBottom
+        ViewCompat.setOnApplyWindowInsetsListener(keyboardView) { v, insets ->
+            val navBar = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
+            v.setPadding(v.paddingLeft, v.paddingTop, v.paddingRight, basePaddingBottom + navBar.bottom)
+            insets
+        }
         return keyboardView
     }
 
