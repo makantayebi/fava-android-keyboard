@@ -1,23 +1,30 @@
 # fava-android (repo: fava-android-keyboard)
 
 Android IME (keyboard app) for the Fava Persian layout. The app is
-currently at `v0.2.5`, built from the `v0.0.6` script — see "Versioning"
-below for why those numbers differ.
+currently at `v0.2.5`, built from the Android-specific layout fork
+`layouts/android/v0.0.6` — see "Versioning" below for why these numbers
+are all independent of each other.
 
 ## Source of truth
 
 The keyboard layouts — `app/src/main/res/xml/avayi_keys.xml` and
 `avayi_keys_shifted.xml` — are generated from
 [`fava-standard`](https://github.com/makantayebi/fava-standard)'s
-`versions/v0.0.6/layout.yaml` by its `tools/render.py`, same as the
-Linux implementation. Don't hand-edit them — update `layout.yaml`,
-re-run the generator, and copy the two files over:
+`layouts/android/v0.0.6/layout.yaml` by its `tools/render.py --target
+android`. This is **not** the same file the Linux/XKB implementation
+uses — Android has its own fork of the layout, independently versioned,
+because some changes make sense for a touchscreen keyboard and not a
+physical one (see "Action keys" below for the first example). See
+`fava-standard/layouts/README.md` for the full base-script-vs-fork
+model. Don't hand-edit the generated XML — update
+`layouts/android/v0.0.6/layout.yaml`, re-run the generator, and copy
+the two files over:
 
 ```bash
 cd fava-standard
-python3 tools/render.py v0.0.6
-cp versions/v0.0.6/generated/avayi_keys.xml         ../fava-android-keyboard/app/src/main/res/xml/
-cp versions/v0.0.6/generated/avayi_keys_shifted.xml ../fava-android-keyboard/app/src/main/res/xml/
+python3 tools/render.py v0.0.6 --target android
+cp layouts/android/v0.0.6/generated/avayi_keys.xml         ../fava-android-keyboard/app/src/main/res/xml/
+cp layouts/android/v0.0.6/generated/avayi_keys_shifted.xml ../fava-android-keyboard/app/src/main/res/xml/
 ```
 
 Unlike the Linux/XKB side, Android needs no Compose-style workaround for
@@ -28,7 +35,7 @@ character key, no per-key logic.
 
 ## Action keys (not every key types a character)
 
-As of script `v0.0.6`, `layout.yaml` can give a key's `base`/`shift` the
+As of `layouts/android/v0.0.6`, a key's `base`/`shift` can be the
 literal value `"BACKSPACE"` instead of a `"U+XXXX"` codepoint — a key
 that performs an action instead of typing text (the `/` key, `AB10`, is
 the first one). `tools/render.py` checks for this explicitly at each
@@ -37,10 +44,15 @@ codepoints does this type" isn't the right question once a key isn't
 typing anything. On Android it becomes
 `android:codes="-5" android:keyIcon="@android:drawable/ic_input_delete"`
 — the same code `FavaInputMethodService.onKey()` already handles for
-the function row's own delete key, so no new Kotlin was needed.
+the function row's own delete key, so no new Kotlin was needed. This
+is a real key-mapping change (it lives in `layout.yaml`, forked), not
+just a rendering choice — a touchscreen benefits from an easy-to-reach
+second backspace in a way a physical keyboard doesn't, which is why it
+diverges from the base script instead of changing it universally.
 
-Two things here are **Android-specific rendering choices**, not part of
-the universal script — the underlying `layout.yaml` is unaffected:
+Two things below remain **pure rendering choices** within the Android
+target's renderer, not key-mapping changes — they'd apply the same way
+whether Android were still tracking the base script or forking it:
 - The `{`/`}`/`\` cluster (`AD11`, `AD12`, `BKSL`) is hidden —
   `ANDROID_HIDE_KEYS` in `tools/render.py` — a touchscreen doesn't need
   rarely-used punctuation eating into row-2 space the way a physical
@@ -62,14 +74,25 @@ system silently refuses to switch.
 
 ## Versioning
 
-This app has its own `versionName`/`versionCode`
-(`app/build.gradle.kts`), tracked in `fava-standard/targets.yaml` as
-this target's `app_version` — separate from `script_version`, which is
-the `fava-standard` layout version (`layout.yaml`) this app's keyboard
-XML was generated from. The globe key is an Android-only UI feature
-with no effect on `layout.yaml`, so it bumped `app_version` to `0.1.0`
-(and the boundary-overflow fix below to `0.1.1`) without touching
-`script_version` (still `0.0.6`).
+Three independent version numbers, tracked in `fava-standard/targets.yaml`:
+
+- **`app_version`** — this app's own `versionName`/`versionCode`
+  (`app/build.gradle.kts`). Moves on any change to the app itself —
+  UI, bug fixes, the globe key — regardless of whether `layout.yaml`
+  was involved at all.
+- **`layout_version`** — which version of *this target's own fork*
+  (`fava-standard/layouts/android/`) the keyboard XML was generated
+  from. Moves only when the actual key mapping changes for Android
+  specifically (like the backspace key above).
+- **`forked_from_script_version`** — which base `fava-standard`
+  `versions/` release this fork diverged from. Doesn't move on its
+  own; it's a record of where Android's fork started, so you can tell
+  what base-script changes (if any, in the future) it might be missing.
+
+The globe key and the boundary-overflow fixes only ever touched
+`app_version` (`0.1.0` → `0.2.5`) — no `layout.yaml` involved. The
+backspace key is the first change to touch `layout_version` (`0.0.6`,
+forked from base `0.0.5`).
 
 ## Keyboard must stay within screen bounds
 

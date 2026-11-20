@@ -13,7 +13,9 @@ import androidx.core.view.WindowInsetsCompat
 /**
  * IME for the Fava Persian layout. Both keyboard pages (avayi_keys.xml,
  * avayi_keys_shifted.xml) are generated from fava-standard's
- * versions/v0.0.6/layout.yaml by tools/render.py — this class only
+ * layouts/android/v0.0.6/layout.yaml (an Android-specific fork of the
+ * base script, not versions/ — see fava-standard/layouts/README.md) by
+ * tools/render.py --target android — this class only
  * handles the few function keys (shift/delete/enter); every character
  * key carries its own android:keyOutputText and is handled generically
  * by onText() below, no per-key logic needed.
