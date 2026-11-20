@@ -2,6 +2,7 @@ package com.fava.keyboard
 
 import android.app.Activity
 import android.os.Bundle
+import android.view.Window
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -13,11 +14,16 @@ import android.widget.TextView
  */
 class MainActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        requestWindowFeature(Window.FEATURE_NO_TITLE) // default title bar otherwise
+        // overlaps the content below it instead of reserving its own space
         super.onCreate(savedInstanceState)
+        window.setDecorFitsSystemWindows(true) // targetSdk 35's edge-to-edge
+        // default would otherwise let content draw under the status bar too
 
+        val dp = resources.displayMetrics.density
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(48, 96, 48, 48)
+            setPadding((16 * dp).toInt(), (24 * dp).toInt(), (16 * dp).toInt(), (16 * dp).toInt())
         }
 
         val versionName = packageManager.getPackageInfo(packageName, 0).versionName
