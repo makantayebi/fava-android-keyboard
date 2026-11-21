@@ -1,8 +1,8 @@
 # fava-android (repo: fava-android-keyboard)
 
 Android IME (keyboard app) for the Fava Persian layout. The app is
-currently at `v0.3.0`, built from the Android-specific layout fork
-`layouts/android/v0.0.7` — see "Versioning" below for why these numbers
+currently at `v0.3.1`, built from the Android-specific layout fork
+`layouts/android/v0.0.8` — see "Versioning" below for why these numbers
 are all independent of each other.
 
 ## Source of truth
@@ -11,22 +11,22 @@ The keyboard layouts — `app/src/main/res/xml/avayi_keys.xml`,
 `avayi_keys_shifted.xml`, and `avayi_keys_symbols.xml` (the ۱۲۳ page,
 see "Three pages" below) — are generated from
 [`fava-standard`](https://github.com/makantayebi/fava-standard)'s
-`layouts/android/v0.0.7/layout.yaml` by its `tools/render.py --target
+`layouts/android/v0.0.8/layout.yaml` by its `tools/render.py --target
 android`. This is **not** the same file the Linux/XKB implementation
 uses — Android has its own fork of the layout, independently versioned,
 because some changes make sense for a touchscreen keyboard and not a
 physical one (see "Action keys" below for the first example). See
 `fava-standard/layouts/README.md` for the full base-script-vs-fork
 model. Don't hand-edit the generated XML — update
-`layouts/android/v0.0.7/layout.yaml`, re-run the generator, and copy
+`layouts/android/v0.0.8/layout.yaml`, re-run the generator, and copy
 the three files over:
 
 ```bash
 cd fava-standard
-python3 tools/render.py v0.0.7 --target android
-cp layouts/android/v0.0.7/generated/avayi_keys.xml         ../fava-android-keyboard/app/src/main/res/xml/
-cp layouts/android/v0.0.7/generated/avayi_keys_shifted.xml ../fava-android-keyboard/app/src/main/res/xml/
-cp layouts/android/v0.0.7/generated/avayi_keys_symbols.xml ../fava-android-keyboard/app/src/main/res/xml/
+python3 tools/render.py v0.0.8 --target android
+cp layouts/android/v0.0.8/generated/avayi_keys.xml         ../fava-android-keyboard/app/src/main/res/xml/
+cp layouts/android/v0.0.8/generated/avayi_keys_shifted.xml ../fava-android-keyboard/app/src/main/res/xml/
+cp layouts/android/v0.0.8/generated/avayi_keys_symbols.xml ../fava-android-keyboard/app/src/main/res/xml/
 ```
 
 Unlike the Linux/XKB side, Android needs no Compose-style workaround for
@@ -37,7 +37,7 @@ character key, no per-key logic.
 
 ## Action keys (not every key types a character)
 
-As of `layouts/android/v0.0.7`, a key's `base`/`shift` can be the
+As of `layouts/android/v0.0.6`, a key's `base`/`shift` can be the
 literal value `"BACKSPACE"` instead of a `"U+XXXX"` codepoint — a key
 that performs an action instead of typing text (the `/` key, `AB10`, is
 the first one). `tools/render.py` checks for this explicitly at each
@@ -64,10 +64,13 @@ Three things below remain **pure rendering choices** within the
 Android target's renderer, not key-mapping changes — they'd apply the
 same way whether Android were still tracking the base script or
 forking it:
-- The `{`/`}`/`\` cluster (`AD11`, `AD12`, `BKSL`) is hidden —
-  `ANDROID_HIDE_KEYS` in `tools/render.py` — a touchscreen doesn't need
-  rarely-used punctuation eating into row-2 space the way a physical
-  keyboard's dedicated keys do.
+- The `}`/`\` pair (`AD12`, `BKSL`) is hidden — `ANDROID_HIDE_KEYS` in
+  `tools/render.py` — a touchscreen doesn't need rarely-used
+  punctuation eating into row space the way a physical keyboard's
+  dedicated keys do. `AD11` (originally paired with these as `{`/`[`)
+  is shown again as of `v0.0.8`, repurposed entirely for ج (see
+  "Top row removed" below) — its original `{`/`[` values are gone on
+  Android, not relocated anywhere.
 - `AB09` (the dot key) is hidden too, as of `v0.0.7` — it only ever
   typed `.`, already reachable via `shift+AB06` (د) since `v0.0.6`, so
   removing it frees up space for the relocated shift key without the
@@ -97,7 +100,7 @@ same "omitted = same as base" fallback convention already used for
 `render_android_keyboard(layout, page=...)` takes `"base"`, `"shift"`,
 or `"symbols"` instead of a `shifted` boolean, and `avayi_keys_symbols.xml`
 is generated the same way as the other two pages. Only the `AD` and
-`AC` rows have `symbols` values set for `v0.0.7` (digits and
+`AC` rows have `symbols` values set as of `v0.0.7` (digits and
 punctuation respectively) — `AE` (already digits), `AB`, and the
 function row are identical to the base page.
 
@@ -112,6 +115,30 @@ at `AB01` on the symbols page too (since the `AB` row doesn't change
 there), and pressing it jumps to the shifted *letters* page rather
 than a "shifted symbols" page that doesn't exist — no separate shifted
 variant of the symbols page was requested.
+
+## Top row removed, ی/یْ, and the ۱۲۳ page reshuffled (v0.0.8)
+
+The entire top row (`TLDE` + `AE01`-`AE12`) is hidden — nothing it
+typed is lost: the digits were already on the ۱۲۳ page, `×` already
+had a home there too, and `÷` moved to the ۱۲۳ page at `X`/ژ. Row `AD`
+(now the visual top row) gained an 11th key: `U` is ع, and `AD11`
+(previously hidden, paired with `{`/`[`) is shown again holding ج,
+displaced from `U`.
+
+Android adopts the base script's `v0.0.6` ی/یْ split (see
+`fava-standard/versions/v0.0.6/notes.md`) but **swaps which physical
+key gets which reading**: the base script puts یْ (the /j/ consonant)
+on `Y`/`AD06` and ی (the /i/ vowel) on `D`/`AC03`; Android does the
+reverse. An intentional, explicit divergence — not a copy error.
+
+The ۱۲۳ page went through a large, deliberate reshuffle — currency
+signs (`€` `¥` `﷼` `$`), Persian-specific punctuation (`٪` `؍` `«` `»`),
+and math symbols (`+` `=` `-`) each landed through an explicit chain of
+relocations (e.g. `$` was at `F`, moved to `C` to make room for `÷`
+moved from `X` to make room for `€`) rather than being placed once and
+left. See `layouts/android/v0.0.8/layout.yaml` in `fava-standard` for
+the full per-key reasoning — every relocation has a comment explaining
+where its value came from and why.
 
 ## Globe key
 
@@ -143,9 +170,10 @@ Three independent version numbers, tracked in `fava-standard/targets.yaml`:
 
 The globe key and the boundary-overflow fixes only ever touched
 `app_version` (`0.1.0` → `0.2.5`) — no `layout.yaml` involved. The
-backspace key (`0.0.6`) and the shift/ZWNJ relocation + ۱۲۳ page
-(`0.0.7`) are the changes that moved `layout_version`, both forked
-from base `0.0.5`.
+backspace key (`0.0.6`), the shift/ZWNJ relocation + ۱۲۳ page
+(`0.0.7`), and the top-row removal + ی/یْ adoption + ۱۲۳ reshuffle
+(`0.0.8`, now forked from base `0.0.6` rather than `0.0.5`) are the
+changes that moved `layout_version`.
 
 ## Keyboard must stay within screen bounds
 
@@ -177,7 +205,7 @@ deliberately omits `isSticky`.
 ```
 
 Both commands apply a custom output naming based on `versionName`, so
-the APK itself is named `fava-0.3.0.apk`, not `app-debug.apk`.
+the APK itself is named `fava-0.3.1.apk`, not `app-debug.apk`.
 
 Built and verified on an emulator before being committed — not just
 "it compiled": installed, enabled as the active IME, and the
