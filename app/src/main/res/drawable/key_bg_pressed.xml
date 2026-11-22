@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- No shadow layer here (unlike key_bg_normal) — filling the full inset
+     bounds instead of leaving the bottom 2dp gap reads as the key sinking
+     down to meet its own shadow, i.e. a pressed/depressed look. -->
 <inset xmlns:android="http://schemas.android.com/apk/res/android"
     android:insetLeft="2dp" android:insetRight="2dp"
     android:insetTop="3dp" android:insetBottom="3dp">
     <shape android:shape="rectangle">
-        <solid android:color="#54545c" />
-        <corners android:radius="10dp" />
+        <solid android:color="#5a5a62" />
+        <corners android:radius="12dp" />
     </shape>
 </inset>

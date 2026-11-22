@@ -4,6 +4,7 @@ import android.graphics.Rect
 import android.inputmethodservice.InputMethodService
 import android.inputmethodservice.Keyboard
 import android.inputmethodservice.KeyboardView
+import android.view.HapticFeedbackConstants
 import android.view.KeyEvent
 import android.view.View
 import android.view.inputmethod.InputMethodManager
@@ -13,7 +14,7 @@ import androidx.core.view.WindowInsetsCompat
 /**
  * IME for the Fava Persian layout. All three keyboard pages (avayi_keys.xml,
  * avayi_keys_shifted.xml, avayi_keys_symbols.xml) are generated from
- * fava-standard's layouts/android/v0.0.7/layout.yaml (an Android-specific
+ * fava-standard's layouts/android/v0.0.9/layout.yaml (an Android-specific
  * fork of the base script, not versions/ — see fava-standard/layouts/README.md)
  * by tools/render.py --target android — this class only
  * handles the few function keys (shift/delete/enter/the ۱۲۳ page toggle);
@@ -111,7 +112,9 @@ class FavaInputMethodService : InputMethodService(), KeyboardView.OnKeyboardActi
         if (shiftActive) setShift(false)  // momentary — one character, then back to base
     }
 
-    override fun onPress(primaryCode: Int) {}
+    override fun onPress(primaryCode: Int) {
+        keyboardView.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+    }
     override fun onRelease(primaryCode: Int) {}
     override fun swipeLeft() {}
     override fun swipeRight() {}

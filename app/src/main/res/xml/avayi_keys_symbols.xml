@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Generated from fava-standard layouts/android/0.0.8/layout.yaml (symbols) -->
+<!-- Generated from fava-standard layouts/android/0.0.9/layout.yaml (symbols) -->
 <!-- Do not hand-edit — change layout.yaml and re-run tools/render.py instead. -->
 <Keyboard xmlns:android="http://schemas.android.com/apk/res/android"
     android:keyWidth="10%p" android:keyHeight="54dp"
@@ -15,7 +15,7 @@
         <Key android:codes="1008" android:keyLabel="۸" android:keyOutputText="۸" />
         <Key android:codes="1009" android:keyLabel="۹" android:keyOutputText="۹" />
         <Key android:codes="1010" android:keyLabel="۰" android:keyOutputText="۰" />
-        <Key android:codes="1011" android:keyLabel="ج" android:keyOutputText="ج" />
+        <Key android:codes="1011" android:keyLabel="٪" android:keyOutputText="٪" />
     </Row>
     <Row android:keyWidth="9.091%p">
         <Key android:codes="1012" android:keyLabel="/" android:keyOutputText="/" />
@@ -27,22 +27,22 @@
         <Key android:codes="1018" android:keyLabel="*" android:keyOutputText="*" />
         <Key android:codes="1019" android:keyLabel="(" android:keyOutputText="(" />
         <Key android:codes="1020" android:keyLabel=")" android:keyOutputText=")" />
-        <Key android:codes="1021" android:keyLabel=":" android:keyOutputText=":" />
-        <Key android:codes="1022" android:keyLabel="؛" android:keyOutputText="؛" />
+        <Key android:codes="1021" android:keyLabel="≈" android:keyOutputText="≈" />
+        <Key android:codes="1022" android:keyLabel="≠" android:keyOutputText="≠" />
     </Row>
     <Row android:keyWidth="11.111%p">
-        <Key android:codes="-1" android:keyLabel="⇧" android:isModifier="true" />
+        <Key android:codes="-1" android:keyIcon="@drawable/ic_shift_outline" android:isModifier="true" />
         <Key android:codes="1023" android:keyLabel="€" android:keyOutputText="€" />
         <Key android:codes="1024" android:keyLabel="$" android:keyOutputText="$" />
         <Key android:codes="1025" android:keyLabel="﷼" android:keyOutputText="﷼" />
         <Key android:codes="1026" android:keyLabel="¥" android:keyOutputText="¥" />
-        <Key android:codes="1027" android:keyLabel="٪" android:keyOutputText="٪" />
-        <Key android:codes="1028" android:keyLabel="؍" android:keyOutputText="؍" />
-        <Key android:codes="1029" android:keyLabel="و" android:keyOutputText="و" />
-        <Key android:codes="-5" android:keyIcon="@android:drawable/ic_input_delete" android:isRepeatable="true" />
+        <Key android:codes="1027" android:keyLabel="&lt;" android:keyOutputText="&lt;" />
+        <Key android:codes="1028" android:keyLabel="&gt;" android:keyOutputText="&gt;" />
+        <Key android:codes="1029" android:keyLabel="✓" android:keyOutputText="✓" />
+        <Key android:codes="-5" android:keyIcon="@drawable/ic_backspace_rtl" android:isRepeatable="true" />
     </Row>
     <Row android:keyWidth="12%p" android:rowEdgeFlags="bottom">
-        <Key android:codes="12" android:keyLabel="ABC" android:keyWidth="12%p" />
+        <Key android:codes="12" android:keyLabel="آ ب پ" android:keyWidth="12%p" />
         <Key android:codes="11" android:keyLabel="🌐" android:keyWidth="12%p" />
         <Key android:codes="1030" android:keyLabel=" " android:keyOutputText=" " android:keyWidth="50%p" android:isRepeatable="true" />
         <Key android:codes="1031" android:keyLabel="◂┆▸" android:keyOutputText="‌" android:keyWidth="13%p" />

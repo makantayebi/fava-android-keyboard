@@ -1,8 +1,8 @@
 # fava-android (repo: fava-android-keyboard)
 
 Android IME (keyboard app) for the Fava Persian layout. The app is
-currently at `v0.3.1`, built from the Android-specific layout fork
-`layouts/android/v0.0.8` — see "Versioning" below for why these numbers
+currently at `v0.3.2`, built from the Android-specific layout fork
+`layouts/android/v0.0.9` — see "Versioning" below for why these numbers
 are all independent of each other.
 
 ## Source of truth
@@ -11,22 +11,22 @@ The keyboard layouts — `app/src/main/res/xml/avayi_keys.xml`,
 `avayi_keys_shifted.xml`, and `avayi_keys_symbols.xml` (the ۱۲۳ page,
 see "Three pages" below) — are generated from
 [`fava-standard`](https://github.com/makantayebi/fava-standard)'s
-`layouts/android/v0.0.8/layout.yaml` by its `tools/render.py --target
+`layouts/android/v0.0.9/layout.yaml` by its `tools/render.py --target
 android`. This is **not** the same file the Linux/XKB implementation
 uses — Android has its own fork of the layout, independently versioned,
 because some changes make sense for a touchscreen keyboard and not a
 physical one (see "Action keys" below for the first example). See
 `fava-standard/layouts/README.md` for the full base-script-vs-fork
 model. Don't hand-edit the generated XML — update
-`layouts/android/v0.0.8/layout.yaml`, re-run the generator, and copy
+`layouts/android/v0.0.9/layout.yaml`, re-run the generator, and copy
 the three files over:
 
 ```bash
 cd fava-standard
-python3 tools/render.py v0.0.8 --target android
-cp layouts/android/v0.0.8/generated/avayi_keys.xml         ../fava-android-keyboard/app/src/main/res/xml/
-cp layouts/android/v0.0.8/generated/avayi_keys_shifted.xml ../fava-android-keyboard/app/src/main/res/xml/
-cp layouts/android/v0.0.8/generated/avayi_keys_symbols.xml ../fava-android-keyboard/app/src/main/res/xml/
+python3 tools/render.py v0.0.9 --target android
+cp layouts/android/v0.0.9/generated/avayi_keys.xml         ../fava-android-keyboard/app/src/main/res/xml/
+cp layouts/android/v0.0.9/generated/avayi_keys_shifted.xml ../fava-android-keyboard/app/src/main/res/xml/
+cp layouts/android/v0.0.9/generated/avayi_keys_symbols.xml ../fava-android-keyboard/app/src/main/res/xml/
 ```
 
 Unlike the Linux/XKB side, Android needs no Compose-style workaround for
@@ -44,13 +44,24 @@ the first one). `tools/render.py` checks for this explicitly at each
 render site rather than teaching `cp_list()` about it, since "what
 codepoints does this type" isn't the right question once a key isn't
 typing anything. On Android it becomes
-`android:codes="-5" android:keyIcon="@android:drawable/ic_input_delete"`
+`android:codes="-5" android:keyIcon="@drawable/ic_backspace_rtl"`
 — the same code `FavaInputMethodService.onKey()` already handles for
 the function row's own delete key, so no new Kotlin was needed. This
 is a real key-mapping change (it lives in `layout.yaml`, forked), not
 just a rendering choice — a touchscreen benefits from an easy-to-reach
 second backspace in a way a physical keyboard doesn't, which is why it
 diverges from the base script instead of changing it universally.
+
+`ic_backspace_rtl.xml` (`app/src/main/res/drawable/`, as of app
+`0.3.2`) is this app's own icon, not the system
+`@android:drawable/ic_input_delete` it used before — the stock glyph's
+notch points left, correct for LTR text where the previous character
+sits to the left of the cursor, but for RTL Persian text the previous
+character is to the right. It's the same vector path, just wrapped in
+a `<group android:scaleX="-1">` to mirror it horizontally. This is a
+pure app-level asset swap (`app_version` only) — nothing in
+`layout.yaml` changed, since both backspace keys already pointed at
+the same `ACTION_BACKSPACE` sentinel.
 
 `v0.0.7` adds a second action sentinel, `"SHIFT"` — the physical shift
 control itself can now live anywhere in the main key grid instead of
@@ -140,6 +151,24 @@ left. See `layouts/android/v0.0.8/layout.yaml` in `fava-standard` for
 the full per-key reasoning — every relocation has a comment explaining
 where its value came from and why.
 
+## ۱۲۳ page polish and ع dropped for اْ (v0.0.9)
+
+Another round of ۱۲۳-page reassignment, each again a deliberate,
+individually-reasoned relocation rather than a leftover default: `٪`
+moves from `N` to the `[`/`AD11` key; `:` and `؛` (previously just
+reused as the ۱۲۳-page value with no individual choice behind them)
+become `≈` and `≠`; `و` (the key immediately before backspace, since
+`AB09` stays hidden) becomes `✓`; `N` and `M` become `<` and `>`,
+replacing `£` and `؍`, which had only just been placed there earlier
+in this same version and are dropped again. See
+`layouts/android/v0.0.9/layout.yaml` in `fava-standard` for the full
+chain.
+
+`U` (`AD07`) changes from ع to اْ (الف + سکون, alef + sukun) — the
+same combining-mark pattern already used for وْ (`AB05`) and یْ
+(`AC03`). ع is dropped from this layout entirely, not relocated
+anywhere else.
+
 ## Globe key
 
 The bottom row includes a 🌐 key (code 11) between shift and space, same
@@ -150,6 +179,35 @@ the app owning any switcher UI itself. See
 reachable at all, `res/xml/method.xml` must declare
 `android:supportsSwitchingToNextInputMethod="true"` — without it the
 system silently refuses to switch.
+
+## Shift icon, tap feedback, and visual polish (app 0.3.2)
+
+The shift key (`AB01`) uses `android:keyIcon` instead of a text
+`keyLabel` as of `0.3.2` — `ic_shift_outline.xml` (empty, stroke-only
+arrow) on the base and symbols pages, `ic_shift_filled.xml` (solid
+arrow) on the shift page. This is a static per-page choice baked in by
+`render_android_keyboard`'s `page` argument, not something toggled at
+runtime: `baseKeyboard`/`symbolsKeyboard` are only ever shown while
+shift is off, `shiftedKeyboard` only while it's on, so whichever icon
+each page's XML carries is automatically "correct" the moment
+`FavaInputMethodService.setShift()` switches which `Keyboard` object is
+displayed. (A `state_checked`-driven icon selector was considered and
+rejected — the legacy `KeyboardView` draw loop isn't confirmed to
+re-evaluate drawable state for `keyIcon`, only for `keyBackground`.)
+
+`onPress()` now calls
+`keyboardView.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)`
+— respects the system's touch-feedback setting rather than forcing
+vibration regardless of it.
+
+`key_bg_normal.xml`/`key_bg_pressed.xml` fake a drop shadow (a darker
+rounded rect peeking out ~2dp below each key) since individual keys
+inside one `KeyboardView` canvas can't get real `View` elevation;
+pressing a key now fills that gap instead of just changing color, read
+as the key sinking down to meet its own shadow. `key_bg_checked.xml`
+(new) gives the shift key a blue highlight while active, via the same
+`android:state_checked` mechanism `Keyboard.setShifted()` already
+drives for free.
 
 ## Versioning
 
@@ -171,9 +229,13 @@ Three independent version numbers, tracked in `fava-standard/targets.yaml`:
 The globe key and the boundary-overflow fixes only ever touched
 `app_version` (`0.1.0` → `0.2.5`) — no `layout.yaml` involved. The
 backspace key (`0.0.6`), the shift/ZWNJ relocation + ۱۲۳ page
-(`0.0.7`), and the top-row removal + ی/یْ adoption + ۱۲۳ reshuffle
-(`0.0.8`, now forked from base `0.0.6` rather than `0.0.5`) are the
-changes that moved `layout_version`.
+(`0.0.7`), the top-row removal + ی/یْ adoption + ۱۲۳ reshuffle
+(`0.0.8`, now forked from base `0.0.6` rather than `0.0.5`), and the
+further ۱۲۳-page reassignment + ع-to-اْ swap (`0.0.9`) are the changes
+that moved `layout_version`. The RTL-mirrored backspace icon, the
+outline/filled shift icon, tap haptics, and the key-elevation/press
+visual polish (`0.3.2`) only touched `app_version` — no `layout.yaml`
+involved, same as the globe key.
 
 ## Keyboard must stay within screen bounds
 
@@ -205,13 +267,18 @@ deliberately omits `isSticky`.
 ```
 
 Both commands apply a custom output naming based on `versionName`, so
-the APK itself is named `fava-0.3.1.apk`, not `app-debug.apk`.
+the APK itself is named `fava-0.3.2.apk`, not `app-debug.apk`.
 
-Built and verified on an emulator before being committed — not just
-"it compiled": installed, enabled as the active IME, and the
-committed text confirmed key-by-key (regular keys, the multi-character
-shift+Q/W/E and B keys, and the momentary-shift revert behavior) via
-`uiautomator dump`, not just a screenshot.
+Through `0.3.1`, built and verified on an emulator before being
+committed — not just "it compiled": installed, enabled as the active
+IME, and the committed text confirmed key-by-key via `uiautomator
+dump`, not just a screenshot. As of `0.3.2`, emulators are no longer
+used at all for this project (user preference); verification instead
+means decompiling the built APK's own resources directly (`aapt dump
+xmltree`/`aapt dump --values resources`) to confirm the generated XML
+and drawables compiled exactly as intended, plus a human installing
+the APK on a real device to confirm it actually looks/feels right —
+the AI assistant doesn't run the app itself anymore.
 
 ## Release signing
 

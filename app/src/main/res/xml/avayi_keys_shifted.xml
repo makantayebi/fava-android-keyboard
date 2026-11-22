@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Generated from fava-standard layouts/android/0.0.8/layout.yaml (shift) -->
+<!-- Generated from fava-standard layouts/android/0.0.9/layout.yaml (shift) -->
 <!-- Do not hand-edit — change layout.yaml and re-run tools/render.py instead. -->
 <Keyboard xmlns:android="http://schemas.android.com/apk/res/android"
     android:keyWidth="10%p" android:keyHeight="54dp"
@@ -11,7 +11,7 @@
         <Key android:codes="1004" android:keyLabel="ق" android:keyOutputText="ق" />
         <Key android:codes="1005" android:keyLabel="،" android:keyOutputText="،" />
         <Key android:codes="1006" android:keyLabel="ی" android:keyOutputText="ی" />
-        <Key android:codes="1007" android:keyLabel="ع" android:keyOutputText="ع" />
+        <Key android:codes="1007" android:keyLabel="اْ" android:keyOutputText="اْ" />
         <Key android:codes="1008" android:keyLabel="ّ" android:keyOutputText="ّ" />
         <Key android:codes="1009" android:keyLabel="خ" android:keyOutputText="خ" />
         <Key android:codes="1010" android:keyLabel="چ" android:keyOutputText="چ" />
@@ -31,7 +31,7 @@
         <Key android:codes="1022" android:keyLabel="؛" android:keyOutputText="؛" />
     </Row>
     <Row android:keyWidth="11.111%p">
-        <Key android:codes="-1" android:keyLabel="⇧" android:isModifier="true" />
+        <Key android:codes="-1" android:keyIcon="@drawable/ic_shift_filled" android:isModifier="true" />
         <Key android:codes="1023" android:keyLabel="ژ" android:keyOutputText="ژ" />
         <Key android:codes="1024" android:keyLabel="ز" android:keyOutputText="ز" />
         <Key android:codes="1025" android:keyLabel="ر" android:keyOutputText="ر" />
@@ -39,7 +39,7 @@
         <Key android:codes="1027" android:keyLabel="!" android:keyOutputText="!" />
         <Key android:codes="1028" android:keyLabel="." android:keyOutputText="." />
         <Key android:codes="1029" android:keyLabel="؟" android:keyOutputText="؟" />
-        <Key android:codes="-5" android:keyIcon="@android:drawable/ic_input_delete" android:isRepeatable="true" />
+        <Key android:codes="-5" android:keyIcon="@drawable/ic_backspace_rtl" android:isRepeatable="true" />
     </Row>
     <Row android:keyWidth="12%p" android:rowEdgeFlags="bottom">
         <Key android:codes="12" android:keyLabel="۱۲۳" android:keyWidth="12%p" />
