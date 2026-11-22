@@ -1,8 +1,8 @@
 # fava-android (repo: fava-android-keyboard)
 
 Android IME (keyboard app) for the Fava Persian layout. The app is
-currently at `v0.3.2`, built from the Android-specific layout fork
-`layouts/android/v0.0.9` — see "Versioning" below for why these numbers
+currently at `v0.3.3`, built from the Android-specific layout fork
+`layouts/android/v0.0.10` — see "Versioning" below for why these numbers
 are all independent of each other.
 
 ## Source of truth
@@ -11,22 +11,22 @@ The keyboard layouts — `app/src/main/res/xml/avayi_keys.xml`,
 `avayi_keys_shifted.xml`, and `avayi_keys_symbols.xml` (the ۱۲۳ page,
 see "Three pages" below) — are generated from
 [`fava-standard`](https://github.com/makantayebi/fava-standard)'s
-`layouts/android/v0.0.9/layout.yaml` by its `tools/render.py --target
+`layouts/android/v0.0.10/layout.yaml` by its `tools/render.py --target
 android`. This is **not** the same file the Linux/XKB implementation
 uses — Android has its own fork of the layout, independently versioned,
 because some changes make sense for a touchscreen keyboard and not a
 physical one (see "Action keys" below for the first example). See
 `fava-standard/layouts/README.md` for the full base-script-vs-fork
 model. Don't hand-edit the generated XML — update
-`layouts/android/v0.0.9/layout.yaml`, re-run the generator, and copy
+`layouts/android/v0.0.10/layout.yaml`, re-run the generator, and copy
 the three files over:
 
 ```bash
 cd fava-standard
-python3 tools/render.py v0.0.9 --target android
-cp layouts/android/v0.0.9/generated/avayi_keys.xml         ../fava-android-keyboard/app/src/main/res/xml/
-cp layouts/android/v0.0.9/generated/avayi_keys_shifted.xml ../fava-android-keyboard/app/src/main/res/xml/
-cp layouts/android/v0.0.9/generated/avayi_keys_symbols.xml ../fava-android-keyboard/app/src/main/res/xml/
+python3 tools/render.py v0.0.10 --target android
+cp layouts/android/v0.0.10/generated/avayi_keys.xml         ../fava-android-keyboard/app/src/main/res/xml/
+cp layouts/android/v0.0.10/generated/avayi_keys_shifted.xml ../fava-android-keyboard/app/src/main/res/xml/
+cp layouts/android/v0.0.10/generated/avayi_keys_symbols.xml ../fava-android-keyboard/app/src/main/res/xml/
 ```
 
 Unlike the Linux/XKB side, Android needs no Compose-style workaround for
@@ -169,6 +169,49 @@ same combining-mark pattern already used for وْ (`AB05`) and یْ
 (`AC03`). ع is dropped from this layout entirely, not relocated
 anywhere else.
 
+## Toggle label ZWNJ fix, dot/؟/! reshuffle (v0.0.10)
+
+The ۱۲۳/ABC toggle key's symbols-page label joins its three letters
+with ZWNJ (`U+200C`, نیم‌فاصله) instead of plain spaces — and stores
+them in reverse order, `پ‌ب‌آ`, because `KeyboardView`'s key-label
+drawing doesn't apply Unicode bidi reordering the way the diagram
+preview (Pango/librsvg) does; storing them backwards is what lands
+them correctly on screen, reading right to left, as `آ‌ب‌پ`. This fix
+exists as its own version only because `v0.0.9` was already committed
+and shipped (app `0.3.2`) by the time the bug was caught — see
+"Versioning" below.
+
+Real key-mapping changes in the same version: `AB07` (M, پ) loses its
+shift-level `.`. `AB09` — the dot key, hidden since `v0.0.7` (see
+"Action keys" above) — is shown again instead, restored to its
+pre-`v0.0.7` role (base `.`, shift `؟`) right next to backspace, where
+it conceptually belongs. That frees up `AB08`'s shift level (و,
+previously ؟) for `!`, moved in from `AB06` (د), whose shift level is
+now unset.
+
+## Emoji picker (app 0.3.3)
+
+A new function-row key (😀, code 13, between globe and the ۱۲۳ toggle)
+opens a Gboard-style emoji picker: a category tab strip, a scrollable
+grid, and a bottom bar to return to the keyboard or delete — see
+`FavaInputMethodService.setupEmojiPanel()` and `EmojiData.kt`. This
+is **not** a fourth rendered `Keyboard` page the way the ۱۲۳ page is —
+emoji aren't tied to any physical key or to the Persian script this
+project is otherwise about, so there's nothing for `layout.yaml`/
+`render.py` to own here beyond the toggle key's presence in the
+function row. `input_view.xml`'s root is now a `FrameLayout` holding
+the `KeyboardView` and the new `emoji_view.xml` panel as siblings,
+toggled by visibility — `FavaInputMethodService.showPage()` shows
+exactly one of them at a time. `EMOJI_CATEGORIES` in `EmojiData.kt` is
+a fixed, hand-picked set of 157 emoji across 7 categories, restricted
+to single-codepoint, default-emoji-presentation characters (the
+astral `U+1Fxxx` planes) — no variation selectors, no ZWJ sequences,
+no flags — so every entry renders consistently without a presentation
+fallback. Space shrinks from 50% to 38% in the function row to make
+room for the new key (first to 40% for a different key in the same
+version, then further for this one — see the generated XML for the
+final width).
+
 ## Globe key
 
 The bottom row includes a 🌐 key (code 11) between shift and space, same
@@ -230,12 +273,13 @@ The globe key and the boundary-overflow fixes only ever touched
 `app_version` (`0.1.0` → `0.2.5`) — no `layout.yaml` involved. The
 backspace key (`0.0.6`), the shift/ZWNJ relocation + ۱۲۳ page
 (`0.0.7`), the top-row removal + ی/یْ adoption + ۱۲۳ reshuffle
-(`0.0.8`, now forked from base `0.0.6` rather than `0.0.5`), and the
-further ۱۲۳-page reassignment + ع-to-اْ swap (`0.0.9`) are the changes
-that moved `layout_version`. The RTL-mirrored backspace icon, the
-outline/filled shift icon, tap haptics, and the key-elevation/press
-visual polish (`0.3.2`) only touched `app_version` — no `layout.yaml`
-involved, same as the globe key.
+(`0.0.8`, now forked from base `0.0.6` rather than `0.0.5`), the
+further ۱۲۳-page reassignment + ع-to-اْ swap (`0.0.9`), and the toggle
+label's ZWNJ fix + dot/؟/! reshuffle (`0.0.10`) are the changes that
+moved `layout_version`. The RTL-mirrored backspace icon, the
+outline/filled shift icon, tap haptics, the key-elevation/press visual
+polish (`0.3.2`), and the emoji picker (`0.3.3`) only touched
+`app_version` — no `layout.yaml` involved, same as the globe key.
 
 ## Keyboard must stay within screen bounds
 
@@ -267,7 +311,7 @@ deliberately omits `isSticky`.
 ```
 
 Both commands apply a custom output naming based on `versionName`, so
-the APK itself is named `fava-0.3.2.apk`, not `app-debug.apk`.
+the APK itself is named `fava-0.3.3.apk`, not `app-debug.apk`.
 
 Through `0.3.1`, built and verified on an emulator before being
 committed — not just "it compiled": installed, enabled as the active
