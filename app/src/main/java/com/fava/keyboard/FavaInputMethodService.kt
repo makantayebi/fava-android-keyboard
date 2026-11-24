@@ -120,6 +120,21 @@ class FavaInputMethodService : InputMethodService(), KeyboardView.OnKeyboardActi
                 }
                 row?.addView(cell)
             }
+            // The last row of a category rarely divides evenly by the
+            // column count -- without padding, weight=1 would stretch
+            // those few cells to fill the whole row width, leaving huge
+            // gaps that read as "randomly scattered" rather than a clean
+            // trailing partial row.
+            val remainder = category.emoji.size % columns
+            if (remainder != 0) {
+                repeat(columns - remainder) {
+                    val filler = View(this).apply {
+                        layoutParams = LinearLayout.LayoutParams(0, (44 * density).toInt(), 1f)
+                        visibility = View.INVISIBLE
+                    }
+                    row?.addView(filler)
+                }
+            }
         }
 
         backToKeyboard.setOnClickListener { toggleEmoji() }
